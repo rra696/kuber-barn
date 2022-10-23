@@ -6,8 +6,6 @@ package cmd
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/rra696/kuber-barn/internal/services/pod"
 	"github.com/spf13/cobra"
 )
@@ -35,32 +33,12 @@ var createCmd = &cobra.Command{
 		fmt.Printf("pod created: %s\n", pod.ID)
 		fmt.Println("starting pod...")
 
-		runningPod, err := pod.Run()
+		_, err = pod.Run()
 		if err != nil {
 			return err
 		}
 
 		fmt.Printf("pod started: %s\n", pod.ID)
-
-		time.Sleep(time.Second * 3)
-
-		fmt.Println("killing pod...")
-
-		code, err := runningPod.Kill()
-		if err != nil {
-			return err
-		}
-
-		fmt.Printf("pod killed: %s\n", pod.ID)
-
-		fmt.Printf("%s exited with status %d\n", runningPod.Pod.ID, code)
-
-		err = pod.Delete()
-		if err != nil {
-			return err
-		}
-
-		fmt.Printf("container deleted: %s\n", pod.ID)
 
 		return nil
 	},
