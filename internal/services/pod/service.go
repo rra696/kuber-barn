@@ -84,12 +84,12 @@ func KillPod(name string) (string, error) {
 
 	runningPod := RunningPod{
 		Pod: &Pod{
-			ID: name,
-			client: client,
-			ctx: &ctx,
+			ID:        name,
+			client:    client,
+			ctx:       &ctx,
 			container: &container,
 		},
-		task: &task,
+		task:        &task,
 		exitStatusC: exitStatusC,
 	}
 

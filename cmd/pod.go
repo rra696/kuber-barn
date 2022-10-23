@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/rra696/kuber-barn/internal/services/pod"
 	"github.com/spf13/cobra"
 )
@@ -62,7 +63,7 @@ var listCmd = &cobra.Command{
 }
 
 var killCmd = &cobra.Command{
-	Use: "kill",
+	Use:   "kill",
 	Short: "kill existing pod",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id, err := pod.KillPod(name)
