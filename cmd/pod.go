@@ -6,7 +6,6 @@ package cmd
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/rra696/kuber-barn/internal/services/pod"
 	"github.com/spf13/cobra"
@@ -21,9 +20,6 @@ var (
 var podCmd = &cobra.Command{
 	Use:   "pod",
 	Short: "The command line tool to run commands on pod",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("pod called")
-	},
 }
 
 var createCmd = &cobra.Command{
@@ -38,32 +34,12 @@ var createCmd = &cobra.Command{
 		fmt.Printf("pod created: %s\n", pod.ID)
 		fmt.Println("starting pod...")
 
-		runningPod, err := pod.Run()
+		_, err = pod.Run()
 		if err != nil {
 			return err
 		}
 
 		fmt.Printf("pod started: %s\n", pod.ID)
-
-		time.Sleep(time.Second * 3)
-
-		fmt.Println("killing pod...")
-
-		code, err := runningPod.Kill()
-		if err != nil {
-			return err
-		}
-
-		fmt.Printf("pod killed: %s\n", pod.ID)
-
-		fmt.Printf("%s exited with status %d\n", runningPod.Pod.ID, code)
-
-		err = pod.Delete()
-		if err != nil {
-			return err
-		}
-
-		fmt.Printf("container deleted: %s\n", pod.ID)
 
 		return nil
 	},
@@ -71,18 +47,50 @@ var createCmd = &cobra.Command{
 
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "A brief description of your command",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("list called")
+	Short: "List existing pods",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		runningPods, err := pod.ListRunningPods()
+		if err != nil {
+			return err
+		}
+
+		for _, pod := range runningPods {
+			fmt.Println(pod)
+		}
+
+		return nil
+	},
+}
+
+var killCmd = &cobra.Command{
+	Use:   "kill",
+	Short: "kill existing pod",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		id, err := pod.KillPod(name)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(id)
+
+		return nil
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(podCmd)
-	rootCmd.AddCommand(createCmd)
-	rootCmd.AddCommand(listCmd)
 
+	// Create
+	podCmd.AddCommand(createCmd)
 	createCmd.Flags().StringVar(&imageRegistry, "registry", "", "image registry to pull (required)")
 	createCmd.MarkFlagRequired("registry")
 	createCmd.Flags().StringVar(&name, "name", "nameless", "the pod name")
+
+	// List
+	podCmd.AddCommand(listCmd)
+
+	// Kill
+	podCmd.AddCommand(killCmd)
+	killCmd.Flags().StringVar(&name, "id", "", "the pod id (required)")
+	killCmd.MarkFlagRequired("id")
 }
