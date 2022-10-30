@@ -1,12 +1,30 @@
 package pod
 
 import (
+	"fmt"
+	"io/ioutil"
+	"log"
+
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/cio"
 	"github.com/containerd/containerd/oci"
 )
 
-func NewPod(registryImage, name string) (*Pod, error) {
+func NewPodAndRun(imageRegistry, name string) (string, error) {
+	pod, err := newPod(imageRegistry, name)
+	if err != nil {
+		return "", err
+	}
+
+	log.Printf("pod created: %s\n", pod.ID)
+	log.Println("pod starting...")
+
+	_, err = pod.Run()
+
+	return pod.ID, nil
+}
+
+func newPod(registryImage, name string) (*Pod, error) {
 	ctx, client, err := initContainerdConnection()
 	if err != nil {
 		return nil, err
@@ -104,4 +122,13 @@ func KillPod(name string) (string, error) {
 	}
 
 	return name, nil
+}
+
+func LogPod(id string) (string, error) {
+	logs, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", LogsPath, id))
+	if err != nil {
+		return "", err
+	}
+
+	return string(logs), err
 }
